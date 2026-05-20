@@ -1,0 +1,29 @@
+### POST inválido
+POST http://localhost:8081/api/v1/pricing-service/prices
+Content-Type: application/json
+
+{
+  "productName": "",
+  "amount": null,
+  "region": null
+}
+
+###
+
+### POST válido
+POST http://localhost:8081/api/v1/pricing-service/prices
+Content-Type: application/json
+
+{
+  "productName": "MacBook Pro M4",
+  "amount": 1299.99,
+  "region": {
+    "id": 1
+  }
+}
+
+###
+
+### GET paginado
+GET http://localhost:8081/api/v1/pricing-service/prices/page/0
+Accept: application/json

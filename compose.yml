@@ -1,0 +1,44 @@
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: pricing_service_db
+
+    environment:
+      POSTGRES_DB: techplanner_pricing
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d techplanner_pricing"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Spring Boot App ───────────────────────────────────────
+  app:
+    build: .
+
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+
+    environment:
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JPA_DDL: ${JPA_DDL}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

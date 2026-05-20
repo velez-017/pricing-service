@@ -1,0 +1,4 @@
+GET http://localhost:8081/api/v1/pricing-service/prices/999
+
+###
+DELETE http://localhost:8081/api/v1/pricing-service/prices/999

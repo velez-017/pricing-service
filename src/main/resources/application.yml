@@ -1,0 +1,58 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: pricing-service
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/techplanner_pricing}
+    username: ${DB_USERNAME:devdb}
+    password: ${DB_PASSWORD:123456}
+
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      keepalive-time: 300000
+      validation-timeout: 5000
+      initialization-fail-timeout: -1
+      pool-name: PricingHikariPool
+
+  sql:
+    init:
+      mode: always
+
+  jpa:
+    open-in-view: false
+    defer-datasource-initialization: true
+
+    hibernate:
+      ddl-auto: ${JPA_DDL:update}
+
+    show-sql: true
+
+    properties:
+      hibernate:
+        format_sql: true
+
+management:
+  server:
+    port: 8082
+
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.techplanner.pricingservice: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
