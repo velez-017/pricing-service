@@ -1,10 +1,8 @@
 package com.techplanner.pricingservice.services;
 
 import com.techplanner.pricingservice.entities.Price;
-import com.techplanner.pricingservice.entities.Region;
 import com.techplanner.pricingservice.exceptions.PriceNotFoundException;
 import com.techplanner.pricingservice.repositories.IPriceDao;
-import com.techplanner.pricingservice.repositories.RegionRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,28 +30,19 @@ class PriceServiceImplTest {
     @Mock
     private IPriceDao priceDao;
 
-    @Mock
-    private RegionRepository regionRepository;
-
     @InjectMocks
     private PriceServiceImpl priceService;
 
     private Price price;
-    private Region region;
 
     @BeforeEach
     void setUp() {
-
-        region = new Region();
-        region.setId(1L);
-        region.setName("North America");
 
         price = new Price();
         price.setId(1L);
         price.setProductName("MacBook Pro");
         price.setAmount(new BigDecimal("2999.99"));
         price.setCreatedAt(LocalDate.now());
-        price.setRegion(region);
     }
 
     // =====================================================
@@ -70,6 +59,7 @@ class PriceServiceImplTest {
         List<Price> result = priceService.findAll();
 
         assertThat(result).hasSize(1);
+
         assertThat(result.get(0).getProductName())
                 .isEqualTo("MacBook Pro");
 
@@ -91,6 +81,7 @@ class PriceServiceImplTest {
         Price result = priceService.findById(1L);
 
         assertThat(result.getId()).isEqualTo(1L);
+
         assertThat(result.getProductName())
                 .isEqualTo("MacBook Pro");
 
@@ -128,6 +119,7 @@ class PriceServiceImplTest {
         Price result = priceService.save(price);
 
         assertThat(result).isNotNull();
+
         assertThat(result.getProductName())
                 .isEqualTo("MacBook Pro");
 
@@ -165,7 +157,6 @@ class PriceServiceImplTest {
         Price updatedData = new Price();
         updatedData.setProductName("MacBook Air");
         updatedData.setAmount(new BigDecimal("1999.99"));
-        updatedData.setRegion(region);
 
         when(priceDao.findById(1L))
                 .thenReturn(Optional.of(price));
@@ -249,63 +240,5 @@ class PriceServiceImplTest {
 
         verify(priceDao, never())
                 .deleteById(any());
-    }
-
-    // =====================================================
-    // REGIONS
-    // =====================================================
-
-    @Test
-    @DisplayName("findAllRegions - should return regions")
-    void findAllRegions_shouldReturnRegions() {
-
-        when(regionRepository.findAll())
-                .thenReturn(List.of(region));
-
-        List<Region> result =
-                priceService.findAllRegions();
-
-        assertThat(result).hasSize(1);
-
-        assertThat(result.get(0).getName())
-                .isEqualTo("North America");
-
-        verify(regionRepository, times(1))
-                .findAll();
-    }
-
-    @Test
-    @DisplayName("findRegionById - existing ID should return region")
-    void findRegionById_existingId_shouldReturnRegion() {
-
-        when(regionRepository.findById(1L))
-                .thenReturn(Optional.of(region));
-
-        Optional<Region> result =
-                priceService.findRegionById(1L);
-
-        assertThat(result).isPresent();
-
-        assertThat(result.get().getName())
-                .isEqualTo("North America");
-
-        verify(regionRepository, times(1))
-                .findById(1L);
-    }
-
-    @Test
-    @DisplayName("findRegionById - non existing ID should return empty")
-    void findRegionById_nonExistingId_shouldReturnEmpty() {
-
-        when(regionRepository.findById(999L))
-                .thenReturn(Optional.empty());
-
-        Optional<Region> result =
-                priceService.findRegionById(999L);
-
-        assertThat(result).isEmpty();
-
-        verify(regionRepository, times(1))
-                .findById(999L);
     }
 }

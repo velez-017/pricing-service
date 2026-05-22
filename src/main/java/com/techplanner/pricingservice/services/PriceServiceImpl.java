@@ -1,10 +1,8 @@
 package com.techplanner.pricingservice.services;
 
 import com.techplanner.pricingservice.entities.Price;
-import com.techplanner.pricingservice.entities.Region;
 import com.techplanner.pricingservice.exceptions.PriceNotFoundException;
 import com.techplanner.pricingservice.repositories.IPriceDao;
-import com.techplanner.pricingservice.repositories.RegionRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -21,9 +18,6 @@ public class PriceServiceImpl implements IPriceService {
 
     @Autowired
     private IPriceDao priceDao;
-
-    @Autowired
-    private RegionRepository regionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -60,7 +54,6 @@ public class PriceServiceImpl implements IPriceService {
 
         currentPrice.setProductName(price.getProductName());
         currentPrice.setAmount(price.getAmount());
-        currentPrice.setRegion(price.getRegion());
 
         return priceDao.save(currentPrice);
     }
@@ -73,17 +66,5 @@ public class PriceServiceImpl implements IPriceService {
         }
 
         priceDao.deleteById(id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Region> findAllRegions() {
-        return regionRepository.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<Region> findRegionById(Long id) {
-        return regionRepository.findById(id);
     }
 }

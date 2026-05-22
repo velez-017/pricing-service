@@ -2,10 +2,11 @@ package com.techplanner.pricingservice.controllers;
 
 import com.techplanner.pricingservice.dto.PriceRequestDto;
 import com.techplanner.pricingservice.dto.PriceResponseDto;
-import com.techplanner.pricingservice.dto.RegionDto;
 import com.techplanner.pricingservice.entities.Price;
-import com.techplanner.pricingservice.entities.Region;
 import com.techplanner.pricingservice.services.IPriceService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
@@ -17,17 +18,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/pricing-service")
 @CrossOrigin(origins = {"http://localhost:4200"})
+@Tag(
+        name = "Pricing API",
+        description = "Operations for managing product pricing"
+)
 public class PriceRestController {
 
     @Autowired
     private IPriceService priceService;
 
+    @Operation(summary = "Get all prices")
     @GetMapping("/prices")
     public ResponseEntity<List<PriceResponseDto>> listPrices() {
 
@@ -39,6 +43,7 @@ public class PriceRestController {
         return ResponseEntity.ok(prices);
     }
 
+    @Operation(summary = "Get paginated prices")
     @GetMapping("/prices/page/{page}")
     public ResponseEntity<Page<PriceResponseDto>> listPricesPage(
             @PathVariable Integer page) {
@@ -51,6 +56,7 @@ public class PriceRestController {
         return ResponseEntity.ok(prices);
     }
 
+    @Operation(summary = "Get price by ID")
     @GetMapping("/prices/{id}")
     public ResponseEntity<PriceResponseDto> findPrice(
             @PathVariable Long id) {
@@ -62,28 +68,16 @@ public class PriceRestController {
         );
     }
 
+    @Operation(summary = "Create a new price")
     @PostMapping("/prices")
-    public ResponseEntity<?> createPrice(
+    public ResponseEntity<PriceResponseDto> createPrice(
             @Valid @RequestBody PriceRequestDto dto) {
-
-        Optional<Region> optionalRegion =
-                priceService.findRegionById(dto.getRegionId());
-
-        if (optionalRegion.isEmpty()) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of(
-                            "message",
-                            "Region not found"
-                    ));
-        }
 
         Price price = new Price();
 
         price.setProductName(dto.getProductName());
         price.setAmount(dto.getAmount());
-        price.setRegion(optionalRegion.get());
+        price.setCustomerType(dto.getCustomerType());
 
         Price newPrice = priceService.save(price);
 
@@ -92,23 +86,17 @@ public class PriceRestController {
                 .body(convertToDto(newPrice));
     }
 
+    @Operation(summary = "Update an existing price")
     @PutMapping("/prices/{id}")
     public ResponseEntity<PriceResponseDto> updatePrice(
             @PathVariable Long id,
             @Valid @RequestBody PriceRequestDto dto) {
 
-        Optional<Region> optionalRegion =
-                priceService.findRegionById(dto.getRegionId());
-
-        if (optionalRegion.isEmpty()) {
-            throw new RuntimeException("Region not found");
-        }
-
         Price price = new Price();
 
         price.setProductName(dto.getProductName());
         price.setAmount(dto.getAmount());
-        price.setRegion(optionalRegion.get());
+        price.setCustomerType(dto.getCustomerType());
 
         Price updatedPrice =
                 priceService.update(id, price);
@@ -118,6 +106,7 @@ public class PriceRestController {
         );
     }
 
+    @Operation(summary = "Delete a price")
     @DeleteMapping("/prices/{id}")
     public ResponseEntity<Void> deletePrice(
             @PathVariable Long id) {
@@ -127,31 +116,40 @@ public class PriceRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/prices/regions")
-    public ResponseEntity<List<RegionDto>> listRegions() {
-
-        List<RegionDto> regions = priceService.findAllRegions()
-                .stream()
-                .map(region -> new RegionDto(
-                        region.getId(),
-                        region.getName()
-                ))
-                .toList();
-
-        return ResponseEntity.ok(regions);
-    }
-
     private PriceResponseDto convertToDto(Price price) {
 
-        return new PriceResponseDto(
-                price.getId(),
-                price.getProductName(),
-                price.getAmount(),
-                price.getCreatedAt(),
-                new RegionDto(
-                        price.getRegion().getId(),
-                        price.getRegion().getName()
-                )
+        PriceResponseDto dto = new PriceResponseDto();
+
+        dto.setId(price.getId());
+
+        dto.setProductName(
+                price.getProductName()
         );
+
+        dto.setBasePrice(
+                price.getAmount()
+        );
+
+        dto.setCustomerType(
+                price.getCustomerType()
+        );
+
+        dto.setDiscountPercentage(
+                price.getDiscountPercentage()
+        );
+
+        dto.setTaxPercentage(
+                price.getTaxPercentage()
+        );
+
+        dto.setFinalPrice(
+                price.getFinalPrice()
+        );
+
+        dto.setCreatedAt(
+                price.getCreatedAt()
+        );
+
+        return dto;
     }
-}
+}git add .

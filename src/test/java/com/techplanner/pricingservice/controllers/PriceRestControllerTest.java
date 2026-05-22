@@ -3,7 +3,6 @@ package com.techplanner.pricingservice.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techplanner.pricingservice.dto.PriceRequestDto;
 import com.techplanner.pricingservice.entities.Price;
-import com.techplanner.pricingservice.entities.Region;
 import com.techplanner.pricingservice.exceptions.PriceNotFoundException;
 import com.techplanner.pricingservice.services.IPriceService;
 
@@ -13,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import org.springframework.http.MediaType;
 
@@ -22,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +36,7 @@ class PriceRestControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private IPriceService priceService;
 
     @Autowired
@@ -48,14 +46,11 @@ class PriceRestControllerTest {
     @DisplayName("GET /prices should return all prices")
     void listPrices_shouldReturnPrices() throws Exception {
 
-        Region region = new Region(1L, "USA");
-
         Price price = new Price();
         price.setId(1L);
         price.setProductName("MacBook Pro");
         price.setAmount(new BigDecimal("2999.99"));
         price.setCreatedAt(LocalDate.now());
-        price.setRegion(region);
 
         when(priceService.findAll())
                 .thenReturn(List.of(price));
@@ -65,21 +60,21 @@ class PriceRestControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].productName")
-                        .value("MacBook Pro"));
+                        .value("MacBook Pro"))
+
+                .andExpect(jsonPath("$[0].amount")
+                        .value(2999.99));
     }
 
     @Test
     @DisplayName("GET /prices/{id} existing id")
     void findPrice_existingId_shouldReturnPrice() throws Exception {
 
-        Region region = new Region(1L, "USA");
-
         Price price = new Price();
         price.setId(1L);
         price.setProductName("MacBook Pro");
         price.setAmount(new BigDecimal("2999.99"));
         price.setCreatedAt(LocalDate.now());
-        price.setRegion(region);
 
         when(priceService.findById(1L))
                 .thenReturn(price);
@@ -88,8 +83,12 @@ class PriceRestControllerTest {
                         get("/api/v1/pricing-service/prices/1")
                 )
                 .andExpect(status().isOk())
+
                 .andExpect(jsonPath("$.productName")
-                        .value("MacBook Pro"));
+                        .value("MacBook Pro"))
+
+                .andExpect(jsonPath("$.amount")
+                        .value(2999.99));
     }
 
     @Test
@@ -109,22 +108,15 @@ class PriceRestControllerTest {
     @DisplayName("POST /prices should create price")
     void createPrice_shouldReturnCreated() throws Exception {
 
-        Region region = new Region(1L, "USA");
-
         Price savedPrice = new Price();
         savedPrice.setId(1L);
         savedPrice.setProductName("MacBook Pro");
         savedPrice.setAmount(new BigDecimal("2999.99"));
         savedPrice.setCreatedAt(LocalDate.now());
-        savedPrice.setRegion(region);
 
         PriceRequestDto dto = new PriceRequestDto();
         dto.setProductName("MacBook Pro");
         dto.setAmount(new BigDecimal("2999.99"));
-        dto.setRegionId(1L);
-
-        when(priceService.findRegionById(1L))
-                .thenReturn(Optional.of(region));
 
         when(priceService.save(any(Price.class)))
                 .thenReturn(savedPrice);
@@ -135,8 +127,12 @@ class PriceRestControllerTest {
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isCreated())
+
                 .andExpect(jsonPath("$.productName")
-                        .value("MacBook Pro"));
+                        .value("MacBook Pro"))
+
+                .andExpect(jsonPath("$.amount")
+                        .value(2999.99));
     }
 
     @Test
@@ -147,7 +143,6 @@ class PriceRestControllerTest {
 
         dto.setProductName("");
         dto.setAmount(new BigDecimal("-10"));
-        dto.setRegionId(null);
 
         mockMvc.perform(
                         post("/api/v1/pricing-service/prices")
@@ -155,5 +150,46 @@ class PriceRestControllerTest {
                                 .content(objectMapper.writeValueAsString(dto))
                 )
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /prices/{id} should update price")
+    void updatePrice_shouldReturnUpdatedPrice() throws Exception {
+
+        Price updatedPrice = new Price();
+        updatedPrice.setId(1L);
+        updatedPrice.setProductName("MacBook Air");
+        updatedPrice.setAmount(new BigDecimal("1999.99"));
+        updatedPrice.setCreatedAt(LocalDate.now());
+
+        PriceRequestDto dto = new PriceRequestDto();
+        dto.setProductName("MacBook Air");
+        dto.setAmount(new BigDecimal("1999.99"));
+
+        when(priceService.update(any(Long.class), any(Price.class)))
+                .thenReturn(updatedPrice);
+
+        mockMvc.perform(
+                        put("/api/v1/pricing-service/prices/1")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(dto))
+                )
+                .andExpect(status().isOk())
+
+                .andExpect(jsonPath("$.productName")
+                        .value("MacBook Air"))
+
+                .andExpect(jsonPath("$.amount")
+                        .value(1999.99));
+    }
+
+    @Test
+    @DisplayName("DELETE /prices/{id} should return 204")
+    void deletePrice_shouldReturnNoContent() throws Exception {
+
+        mockMvc.perform(
+                        delete("/api/v1/pricing-service/prices/1")
+                )
+                .andExpect(status().isNoContent());
     }
 }
