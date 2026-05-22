@@ -1,278 +1,128 @@
 # Pricing Service API
 
-Microservicio REST desarrollado con Spring Boot para la gestión de precios de productos por región.
+Microservicio REST desarrollado con Spring Boot para la gestión de precios de productos, incluyendo reglas de negocio para impuestos, descuentos y tipos de cliente.
 
-## Tecnologías utilizadas
+---
+
+# Tecnologías utilizadas
 
 - Java 21
 - Spring Boot 3
 - Spring Data JPA
 - PostgreSQL
-- Docker
-- Docker Compose
+- Docker & Docker Compose
+- Swagger / OpenAPI
+- JUnit 5
+- Mockito
+- GitHub Actions (CI/CD)
 - Maven
-- Hibernate
-- Lombok
-- Validation API
 
 ---
 
 # Arquitectura del proyecto
 
 ```text
-Controller -> Service -> Repository -> PostgreSQL
-```
-
----
-
-# Funcionalidades
-
-- Crear precios
-- Listar precios
-- Buscar precio por ID
-- Actualizar precios
-- Eliminar precios
-- Listar regiones
-- Validaciones
-- Manejo global de excepciones
-- Dockerización completa
-
----
-
-# Estructura del proyecto
-
-```text
-src/main/java/com/techplanner/pricingservice
+pricing-service
 │
 ├── controllers
-├── dto
-├── entities
-├── exceptions
-├── repositories
 ├── services
-└── PricingServiceApplication
+├── repositories
+├── entities
+├── dto
+├── enums
+├── exceptions
+├── tests
+└── resources
+
+# Estructura típica de un proyecto Spring Boot con capas bien definidas
 ```
+Funcionalidades
+CRUD completo de precios
+Cálculo automático de:
+descuentos
+impuestos
+precio final
+Tipos de cliente:
+REGULAR
+EXECUTIVE
+ADMINISTRATIVE
+Validaciones con Jakarta Validation
+Paginación
+Swagger UI
+Dockerización completa
+Integración continua con GitHub Actions
+Reglas de negocio
+Tipo Cliente	Descuento
+REGULAR	0%
+EXECUTIVE	10%
+ADMINISTRATIVE	5%
 
----
+Impuesto aplicado:
 
-# Variables y puertos
-
-| Servicio | Puerto |
-|---|---|
-| API | 8081 |
-| Actuator | 8082 |
-| PostgreSQL | 5433 |
-
----
-
-# Ejecutar el proyecto
-
-## 1. Clonar repositorio
-
-```bash
-git clone https://github.com/velez-017/pricing-service.git
-```
-
-## 2. Entrar al proyecto
-
-```bash
-cd pricing-service
-```
-
-## 3. Levantar Docker
-
-```bash
-docker compose up -d
-```
-
----
-
-# Verificar contenedores
-
-```bash
-docker ps
-```
-
----
-
-# Health Check
-
-```bash
-curl http://localhost:8082/actuator/health
-```
-
----
-
-# Endpoints disponibles
-
-## Obtener todos los precios
-
-```http
+19%
+Endpoints disponibles
+Obtener todos los precios
 GET /api/v1/pricing-service/prices
-```
-
-Ejemplo:
-
-```bash
-curl http://localhost:8081/api/v1/pricing-service/prices
-```
-
----
-
-## Obtener precio por ID
-
-```http
+Obtener precio por ID
 GET /api/v1/pricing-service/prices/{id}
-```
-
-Ejemplo:
-
-```bash
-curl http://localhost:8081/api/v1/pricing-service/prices/1
-```
-
----
-
-## Crear precio
-
-```http
+Crear precio
 POST /api/v1/pricing-service/prices
-```
-
-Body:
-
-```json
+Body
 {
-  "productName": "Laptop Dell",
-  "amount": 3500,
-  "regionId": 1
+  "productName": "Macbook Pro M4",
+  "amount": 5000,
+  "customerType": "EXECUTIVE"
 }
-```
-
-Ejemplo PowerShell:
-
-```powershell
-curl -Method POST `
-  -Uri "http://localhost:8081/api/v1/pricing-service/prices" `
-  -ContentType "application/json" `
-  -Body '{
-    "productName":"Laptop Dell",
-    "amount":3500,
-    "regionId":1
-  }'
-```
-
----
-
-## Actualizar precio
-
-```http
+Actualizar precio
 PUT /api/v1/pricing-service/prices/{id}
-```
-
----
-
-## Eliminar precio
-
-```http
+Eliminar precio
 DELETE /api/v1/pricing-service/prices/{id}
-```
+Paginación
+GET /api/v1/pricing-service/prices/page/{page}
+Swagger UI
 
----
+Disponible en:
 
-## Obtener regiones
+http://localhost:8081/swagger-ui/index.html
+Ejecutar el proyecto con Docker
+Clonar repositorio
+git clone https://github.com/velez-017/pricing-service.git
+Entrar al proyecto
+cd pricing-service
+Levantar contenedores
+docker compose up --build
+Base de datos
+PostgreSQL
+Inicialización automática mediante import.sql
+Ejecutar tests
+mvn test
+Pipeline CI/CD
 
-```http
-GET /api/v1/pricing-service/prices/regions
-```
+El proyecto incluye GitHub Actions para:
 
-Ejemplo:
+compilación automática
+ejecución de tests
+validación Docker
+integración continua
+Ejemplo de respuesta API
+[
+  {
+    "id": 1,
+    "productName": "Laptop Dell",
+    "basePrice": 2000,
+    "customerType": "REGULAR",
+    "discountPercentage": 0,
+    "taxPercentage": 19,
+    "finalPrice": 2380,
+    "createdAt": "2026-05-22"
+  }
+]
+Autor
 
-```bash
-curl http://localhost:8081/api/v1/pricing-service/prices/regions
-```
+Desarrollado por:
 
----
+Jhon Velez
 
-# Docker
+GitHub:
 
-## Construir imágenes
-
-```bash
-docker compose build
-```
-
-## Levantar servicios
-
-```bash
-docker compose up -d
-```
-
-## Ver logs
-
-```bash
-docker compose logs app
-```
-
-## Detener servicios
-
-```bash
-docker compose down
-```
-
----
-
-# Base de datos
-
-PostgreSQL se ejecuta en Docker.
-
-## Configuración
-
-| Variable | Valor |
-|---|---|
-| Database | pricing_db |
-| User | postgres |
-| Password | postgres |
-| Puerto | 5433 |
-
----
-
-# Validaciones implementadas
-
-- Nombre obligatorio
-- Longitud mínima y máxima
-- Amount obligatorio
-- Amount positivo
-- Región obligatoria
-
----
-
-# Manejo de errores
-
-Se implementó un `GlobalExceptionHandler` para:
-
-- errores de validación
-- recursos no encontrados
-- errores internos del servidor
-
----
-
-# Estado del proyecto
-
-Proyecto funcional y dockerizado.
-
-Características implementadas:
-
-- CRUD REST
-- PostgreSQL
-- Docker Compose
-- Validaciones
-- Exception Handling
-- Actuator
-- Arquitectura por capas
-
----
-
-# Autor
-
-Desarrollado por Jhon Velez como proyecto backend profesional con Spring Boot y Docker.
+https://github.com/velez-017
