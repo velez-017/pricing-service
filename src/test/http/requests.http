@@ -1,4 +1,32 @@
-GET http://localhost:8081/api/v1/pricing-service/prices/999
+GET http://localhost:8081/api/v1/pricing-service/prices
+
 
 ###
-DELETE http://localhost:8081/api/v1/pricing-service/prices/999
+GET http://localhost:8081/api/v1/pricing-service/prices/2
+
+
+###
+POST http://localhost:8081/api/v1/pricing-service/prices
+Content-Type: application/json
+
+{
+  "productName": "HP - Intel i9 - RTX 5090 - 32GB RAM - 1TB SSD",
+  "amount": 8000,
+  "customerType": "EXECUTIVE"
+}
+
+###
+PUT http://localhost:8081/api/v1/pricing-service/prices/1
+Content-Type: application/json
+
+{
+  "productName": "Ryzen 7 - AMD 7700H (Integrada) - 32GB RAM - 1T SSD",
+  "amount": 2500.00,
+  "customerType": "REGULAR"
+}
+
+###
+DELETE http://localhost:8081/api/v1/pricing-service/prices/4
+
+###
+GET http://localhost:8081/api/v1/pricing-service/prices/page/0
